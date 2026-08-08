@@ -1,4 +1,4 @@
-import { User, Profile, DietPlan } from '../models/index.js';
+import { User, Profile, DietPlan, WorkoutPlan } from '../models/index.js';
 
 export const seedDemoUser = async () => {
   try {
@@ -73,7 +73,71 @@ export const seedDemoUser = async () => {
       });
       console.log('🌱 Seeded demo AI diet plan');
     }
+
+    // Seed sample AI workout plan if not exists
+    let workoutPlan = await WorkoutPlan.findOne({ userId: user._id });
+    if (!workoutPlan) {
+      await WorkoutPlan.create({
+        userId: user._id,
+        title: 'Hypertrophy Push / Pull / Legs Split',
+        splitType: 'Push / Pull / Legs',
+        difficulty: 'intermediate',
+        summary: 'Designed for optimal muscle growth with progressive overload focus.',
+        warmupTips: '5-10 mins light incline treadmill walk followed by arm circles and band pull-aparts.',
+        cooldownTips: '5 mins static stretching for target muscle groups worked.',
+        schedule: [
+          {
+            day: 'Monday',
+            focus: 'Push (Chest, Shoulders, Triceps)',
+            isRestDay: false,
+            estimatedMinutes: 60,
+            exercises: [
+              { name: 'Incline Dumbbell Press', muscleGroup: 'Chest', sets: 4, reps: '8-10', restSeconds: 90, tips: 'Control negative motion and squeeze at peak contraction.' },
+              { name: 'Barbell Flat Bench Press', muscleGroup: 'Chest', sets: 3, reps: '8-12', restSeconds: 90, tips: 'Touch lower chest gently, drive through heels.' },
+              { name: 'Seated Dumbbell Shoulder Press', muscleGroup: 'Shoulders', sets: 4, reps: '10-12', restSeconds: 60, tips: 'Avoid flaring elbows out excessively.' },
+              { name: 'Lateral Cable Raises', muscleGroup: 'Shoulders', sets: 4, reps: '12-15', restSeconds: 60, tips: 'Lead with elbows to isolate side delts.' },
+              { name: 'Triceps Rope Pushdowns', muscleGroup: 'Triceps', sets: 3, reps: '12-15', restSeconds: 45, tips: 'Spread rope handles apart at bottom.' },
+            ],
+          },
+          {
+            day: 'Tuesday',
+            focus: 'Pull (Back, Rear Delts, Biceps)',
+            isRestDay: false,
+            estimatedMinutes: 60,
+            exercises: [
+              { name: 'Lat Pulldowns', muscleGroup: 'Lats / Back', sets: 4, reps: '10-12', restSeconds: 90, tips: 'Pull bar to upper chest using lats, not momentum.' },
+              { name: 'Seated Cable Rows', muscleGroup: 'Mid-Back', sets: 4, reps: '10-12', restSeconds: 60, tips: 'Keep torso upright and squeeze shoulder blades.' },
+              { name: 'Face Pulls', muscleGroup: 'Rear Delts', sets: 3, reps: '15-20', restSeconds: 45, tips: 'Pull rope toward eyes, rotating hands outwards.' },
+              { name: 'EZ-Bar Bicep Curls', muscleGroup: 'Biceps', sets: 4, reps: '10-12', restSeconds: 60, tips: 'Keep elbows locked at sides throughout set.' },
+            ],
+          },
+          {
+            day: 'Wednesday',
+            focus: 'Legs & Core',
+            isRestDay: false,
+            estimatedMinutes: 65,
+            exercises: [
+              { name: 'Barbell Back Squats', muscleGroup: 'Quads / Glutes', sets: 4, reps: '6-8', restSeconds: 120, tips: 'Break at hips first, keep chest lifted.' },
+              { name: 'Romanian Deadlifts', muscleGroup: 'Hamstrings / Glutes', sets: 4, reps: '8-10', restSeconds: 90, tips: 'Hinge at hips, feel deep stretch in hamstrings.' },
+              { name: 'Leg Press', muscleGroup: 'Quads', sets: 3, reps: '12-15', restSeconds: 60, tips: 'Avoid locking knees at peak extension.' },
+              { name: 'Standing Calf Raises', muscleGroup: 'Calves', sets: 4, reps: '15-20', restSeconds: 45, tips: 'Pause for 1 second at top contraction.' },
+            ],
+          },
+          {
+            day: 'Thursday',
+            focus: 'Active Rest / Recovery',
+            isRestDay: true,
+            estimatedMinutes: 0,
+            exercises: [],
+          },
+        ],
+        isAIGenerated: true,
+        isActive: true,
+      });
+      console.log('🌱 Seeded demo AI workout plan');
+    }
   } catch (err) {
     console.error('Seed error:', err.message);
   }
 };
+
