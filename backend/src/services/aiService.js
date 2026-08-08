@@ -1,11 +1,29 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import OpenAI from 'openai';
 
-// ─── Gemini Provider ────────────────────────────────────────
-const geminiClient = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+// Lazy client instantiation helper to prevent crash on server startup if API key is missing
+let geminiClientInstance = null;
+const getGeminiClient = () => {
+  if (!geminiClientInstance) {
+    const key = process.env.GEMINI_API_KEY || 'dummy_key';
+    geminiClientInstance = new GoogleGenerativeAI(key);
+  }
+  return geminiClientInstance;
+};
 
+let openaiClientInstance = null;
+const getOpenAIClient = () => {
+  if (!openaiClientInstance) {
+    const key = process.env.OPENAI_API_KEY || 'dummy_key';
+    openaiClientInstance = new OpenAI({ apiKey: key });
+  }
+  return openaiClientInstance;
+};
+
+// ─── Gemini Provider ────────────────────────────────────────
 const callGemini = async (prompt) => {
-  const model = geminiClient.getGenerativeModel({
+  const gemini = getGeminiClient();
+  const model = gemini.getGenerativeModel({
     model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
   });
   const result = await model.generateContent(prompt);
@@ -18,10 +36,9 @@ const callGemini = async (prompt) => {
 };
 
 // ─── OpenAI Provider ────────────────────────────────────────
-const openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || '' });
-
 const callOpenAI = async (prompt) => {
-  const response = await openaiClient.chat.completions.create({
+  const openai = getOpenAIClient();
+  const response = await openai.chat.completions.create({
     model: process.env.OPENAI_MODEL || 'gpt-4-turbo',
     messages: [{ role: 'user', content: prompt }],
     response_format: { type: 'json_object' },

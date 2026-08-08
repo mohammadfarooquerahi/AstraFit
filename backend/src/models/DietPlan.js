@@ -1,31 +1,26 @@
 import mongoose from 'mongoose';
 
+const ingredientSchema = new mongoose.Schema({
+  name: { type: String },
+  quantity: { type: String },
+}, { _id: false });
+
 const mealSchema = new mongoose.Schema({
-  mealName: {
-    type: String, // e.g. Breakfast, Lunch, Dinner, Snack
-    required: true,
-  },
-  foodItem: {
-    type: String,
-    required: true,
-  },
-  calories: {
-    type: Number,
-    required: true,
-  },
-  protein: {
-    type: Number, // in grams
-    required: true,
-  },
-  carbs: {
-    type: Number, // in grams
-    required: true,
-  },
-  fat: {
-    type: Number, // in grams
-    required: true,
-  },
-});
+  type: { type: String }, // Breakfast, Lunch, Dinner, Snack 1, Snack 2
+  name: { type: String },
+  description: { type: String },
+  ingredients: { type: [String], default: [] },
+  calories: { type: Number, default: 0 },
+  protein: { type: Number, default: 0 },
+  carbs: { type: Number, default: 0 },
+  fat: { type: Number, default: 0 },
+}, { _id: false });
+
+const daySchema = new mongoose.Schema({
+  day: { type: String },
+  totalCalories: { type: Number, default: 0 },
+  meals: { type: [mealSchema], default: [] },
+}, { _id: false });
 
 const dietPlanSchema = new mongoose.Schema(
   {
@@ -35,53 +30,25 @@ const dietPlanSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-    dailyCalories: {
-      type: Number,
-      required: true,
+    dailyCalories: { type: Number, default: 0 },
+    macros: {
+      protein: { type: Number, default: 0 },
+      carbs: { type: Number, default: 0 },
+      fat: { type: Number, default: 0 },
     },
-    protein: {
-      type: Number, // in grams
-      required: true,
-    },
-    carbs: {
-      type: Number, // in grams
-      required: true,
-    },
-    fat: {
-      type: Number, // in grams
-      required: true,
-    },
-    meals: {
-      type: [mealSchema],
-      required: true,
-    },
-    hydrationTarget: {
-      type: Number, // in liters
-      required: true,
-    },
-    allergyRestrictions: {
-      type: [String],
-      default: [],
-    },
+    waterIntakeLiters: { type: Number, default: 2.5 },
+    bmi: { type: String },
+    summary: { type: String },
+    days: { type: [daySchema], default: [] },
+    generatedAt: { type: Date, default: Date.now },
+    isAIGenerated: { type: Boolean, default: true },
+    isActive: { type: Boolean, default: true },
     safetyDisclaimer: {
       type: String,
-      default: 'This AI-generated plan is for general fitness guidance and is not medical advice. Consult a healthcare professional before starting.',
-    },
-    isCustomOverride: {
-      type: Boolean,
-      default: false,
-    },
-    adminNotes: {
-      type: String,
-      trim: true,
-    },
-    originalAIPlan: {
-      type: String, // Audit trace storing original raw prompt output
+      default: 'This AI-generated plan is for general fitness guidance only — not medical advice.',
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 const DietPlan = mongoose.model('DietPlan', dietPlanSchema);

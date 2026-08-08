@@ -12,6 +12,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
 import dietRoutes from './routes/dietRoutes.js';
+import { seedDemoUser } from './utils/seed.js';
 
 // Load Environment variables
 dotenv.config();
@@ -78,10 +79,27 @@ const authLimiter = rateLimit({
 app.use('/api/', limiter);
 
 // ─── Database Connection ────────────────────────────────────
-mongoose
-  .connect(MONGODB_URI)
-  .then(() => console.log('✅ Successfully connected to MongoDB Database.'))
-  .catch((err) => console.error('❌ MongoDB connection error:', err.message));
+const connectDB = async () => {
+  try {
+    await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 });
+    console.log('✅ Successfully connected to MongoDB Database.');
+    await seedDemoUser();
+  } catch (err) {
+    console.error('❌ MongoDB Atlas connection error:', err.message);
+    console.log('⚠️ Attempting fallback to In-Memory Database for local testing...');
+    try {
+      const { MongoMemoryServer } = await import('mongodb-memory-server');
+      const mongod = await MongoMemoryServer.create();
+      const uri = mongod.getUri();
+      await mongoose.connect(uri);
+      console.log('⚡ Connected to In-Memory MongoDB Fallback.');
+      await seedDemoUser();
+    } catch (fallbackErr) {
+      console.error('❌ In-Memory Fallback error:', fallbackErr.message);
+    }
+  }
+};
+connectDB();
 
 // ─── API Routes ─────────────────────────────────────────────
 app.get('/api/health', (req, res) => {

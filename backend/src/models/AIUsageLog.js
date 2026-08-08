@@ -14,42 +14,25 @@ const aiUsageLogSchema = new mongoose.Schema(
     },
     model: {
       type: String,
-      required: true,
+      default: 'unknown',
+    },
+    feature: {
+      type: String, // diet_plan, workout_plan, chat, etc.
+      default: 'unknown',
     },
     requestType: {
       type: String,
-      enum: ['diet_generation', 'workout_generation', 'chat', 'progress_insight'],
-      required: true,
-      index: true,
+      enum: ['diet_generation', 'workout_generation', 'chat', 'progress_insight', 'other'],
+      default: 'other',
     },
-    promptTokens: {
-      type: Number,
-      default: 0,
-    },
-    completionTokens: {
-      type: Number,
-      default: 0,
-    },
-    totalTokens: {
-      type: Number,
-      default: 0,
-    },
-    latencyMs: {
-      type: Number,
-      default: 0,
-    },
-    success: {
-      type: Boolean,
-      required: true,
-      index: true,
-    },
-    errorMessage: {
-      type: String,
-    },
+    promptTokens: { type: Number, default: 0 },
+    completionTokens: { type: Number, default: 0 },
+    totalTokens: { type: Number, default: 0 },
+    latencyMs: { type: Number, default: 0 },
+    success: { type: Boolean, default: true },
+    errorMessage: { type: String },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 const AIUsageLog = mongoose.model('AIUsageLog', aiUsageLogSchema);
