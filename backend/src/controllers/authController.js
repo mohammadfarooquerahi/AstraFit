@@ -4,8 +4,8 @@ import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '.
 // Cookie options for refresh token
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,       // Not accessible via JS — prevents XSS
-  secure: process.env.NODE_ENV === 'production',  // HTTPS only in prod
-  sameSite: 'strict',
+  secure: process.env.NODE_ENV === 'production' && !process.env.CLIENT_URL?.includes('localhost'),
+  sameSite: 'lax',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 

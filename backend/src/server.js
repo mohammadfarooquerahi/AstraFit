@@ -85,24 +85,31 @@ const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200, standardHeaders:
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20 });
 app.use('/api/', limiter);
 
+// ─── Database Readiness Middleware ──────────────────────────
+app.use('/api/', (req, res, next) => {
+  if (req.path === '/health') return next();
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database connection is establishing. Please retry in a few seconds.',
+    });
+  }
+  next();
+});
+
 // ─── Database Connection ────────────────────────────────────
 const connectDB = async () => {
   try {
-    await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 });
+    await mongoose.connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 15000,
+      bufferCommands: true,
+    });
     console.log('✅ Successfully connected to MongoDB Database.');
     await seedDemoUser();
   } catch (err) {
     console.error('❌ MongoDB Atlas connection error:', err.message);
-    console.log('⚠️ Attempting fallback to In-Memory Database...');
-    try {
-      const { MongoMemoryServer } = await import('mongodb-memory-server');
-      const mongod = await MongoMemoryServer.create();
-      await mongoose.connect(mongod.getUri());
-      console.log('⚡ Connected to In-Memory MongoDB Fallback.');
-      await seedDemoUser();
-    } catch (fallbackErr) {
-      console.error('❌ In-Memory Fallback error:', fallbackErr.message);
-    }
+    console.log('⚠️ Retrying MongoDB Atlas connection...');
+    setTimeout(connectDB, 3000);
   }
 };
 connectDB();
