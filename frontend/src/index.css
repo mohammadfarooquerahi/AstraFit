@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .glass-panel {
+    @apply bg-slate-900/50 backdrop-blur-sm;
+  }
+  .btn-gradient {
+    @apply bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 transition-all duration-200;
+  }
+}
+
+
 @layer base {
   :root {
     --background: 222.2 84% 4.9%;

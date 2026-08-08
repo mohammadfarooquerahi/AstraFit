@@ -10,6 +10,7 @@ import dotenv from 'dotenv';
 
 // Routes
 import authRoutes from './routes/authRoutes.js';
+import profileRoutes from './routes/profileRoutes.js';
 
 // Load Environment variables
 dotenv.config();
@@ -96,6 +97,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/profile', profileRoutes);
 
 // ─── Socket.IO ──────────────────────────────────────────────
 io.on('connection', (socket) => {
