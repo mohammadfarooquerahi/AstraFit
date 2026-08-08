@@ -158,22 +158,37 @@ export default function AdminDashboard() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar Navigation */}
-        <aside className="w-56 shrink-0 border-r border-slate-800 bg-slate-950 flex flex-col py-6 px-3 gap-1 overflow-y-auto">
-          {SECTIONS.map(s => (
-            <button key={s.id} onClick={() => setActive(s.id)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-left ${
-                active === s.id
-                  ? 'bg-violet-600/20 border border-violet-500/30 text-white'
-                  : 'text-slate-400 hover:bg-slate-900 hover:text-white'
-              }`}>
-              <s.icon className={`w-4 h-4 ${active === s.id ? s.color : 'text-slate-500'}`} />
-              {s.label}
-            </button>
-          ))}
+        <aside className="w-60 shrink-0 border-r border-slate-800/80 bg-slate-950/95 flex flex-col py-5 px-3 gap-1 overflow-y-auto custom-scrollbar">
+          <div className="px-3 pb-3 mb-1 border-b border-slate-800/60">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Dashboard Menu</span>
+          </div>
+          {SECTIONS.map(s => {
+            const isActive = active === s.id;
+            return (
+              <button key={s.id} onClick={() => setActive(s.id)}
+                className={`relative flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-semibold transition-all text-left group ${
+                  isActive
+                    ? 'bg-gradient-to-r from-violet-600/20 via-indigo-600/10 to-transparent border border-violet-500/30 text-white shadow-lg shadow-violet-500/5'
+                    : 'text-slate-400 hover:bg-slate-900/60 hover:text-white border border-transparent'
+                }`}>
+                {/* Active left glowing pill indicator bar */}
+                {isActive && (
+                  <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-gradient-to-b from-violet-400 to-indigo-500 shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
+                )}
+                <div className={`p-1.5 rounded-lg transition-all ${isActive ? 'bg-violet-500/20 text-violet-300' : 'bg-slate-900/80 text-slate-500 group-hover:text-slate-300'}`}>
+                  <s.icon className={`w-4 h-4 ${isActive ? s.color : 'text-slate-400'}`} />
+                </div>
+                <span className="flex-1 text-xs sm:text-sm font-bold tracking-tight">{s.label}</span>
+                {isActive && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
+                )}
+              </button>
+            );
+          })}
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-6 custom-scrollbar">
           {loading && (
             <div className="flex items-center justify-center py-24">
               <Loader2 className="w-8 h-8 animate-spin text-violet-400" />
