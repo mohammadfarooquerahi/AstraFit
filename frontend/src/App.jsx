@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+
+// Pages
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Onboarding from './pages/Onboarding.jsx';
@@ -13,39 +15,41 @@ import HabitTracker from './pages/HabitTracker.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import BodyAnalysis from './pages/BodyAnalysis.jsx';
 import ProgressPhotos from './pages/ProgressPhotos.jsx';
+import Profile from './pages/Profile.jsx';
+import AdminPrompts from './pages/AdminPrompts.jsx';
 
 // Route guard — redirect to /login if not authenticated
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-10 h-10 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-slate-400 text-sm">Loading...</p>
-      </div>
+      <div className="w-8 h-8 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
     </div>
   );
   return user ? children : <Navigate to="/login" replace />;
 };
 
-// Redirect logged-in users away from auth pages
-const GuestRoute = ({ children }) => {
+// Admin only guard
+const AdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return null;
-  return !user ? children : <Navigate to="/dashboard" replace />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role !== 'admin') return <Navigate to="/dashboard" replace />;
+  return children;
 };
 
 function AppRoutes() {
   return (
     <Routes>
-      {/* Public routes */}
+      {/* Public */}
       <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
-      <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
 
-      {/* Protected routes */}
+      {/* Protected User Routes */}
       <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="/diet" element={<ProtectedRoute><DietPlan /></ProtectedRoute>} />
       <Route path="/workout" element={<ProtectedRoute><WorkoutPlan /></ProtectedRoute>} />
       <Route path="/progress" element={<ProtectedRoute><ProgressTracker /></ProtectedRoute>} />
@@ -53,10 +57,13 @@ function AppRoutes() {
       <Route path="/habits" element={<ProtectedRoute><HabitTracker /></ProtectedRoute>} />
       <Route path="/body-analysis" element={<ProtectedRoute><BodyAnalysis /></ProtectedRoute>} />
       <Route path="/progress-photos" element={<ProtectedRoute><ProgressPhotos /></ProtectedRoute>} />
-      <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+
+      {/* Admin Routes */}
+      <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+      <Route path="/admin/prompts" element={<AdminRoute><AdminPrompts /></AdminRoute>} />
 
       {/* 404 fallback */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 }
