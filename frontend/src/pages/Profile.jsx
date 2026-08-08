@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
 import {
-  ArrowLeft, User, Mail, Target, Activity, Ruler, Weight,
+  ArrowLeft, User, Mail, Target, Activity, Ruler, Scale,
   Save, Loader2, CheckCircle2, Edit3, Flame, Shield
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
