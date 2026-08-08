@@ -148,6 +148,17 @@ export const seedDemoUser = async () => {
       ]);
       console.log('🌱 Seeded demo user progress history logs');
     }
+    // Seed sample chat messages if not exists
+    let chatConv = await ChatConversation.findOne({ userId: user._id });
+    if (!chatConv) {
+      chatConv = await ChatConversation.create({ userId: user._id, title: 'AI Coaching Chat' });
+      await ChatMessage.insertMany([
+        { conversationId: chatConv._id, sender: 'ai', message: 'Hello Farooq! I am your AstraFit AI Fitness Coach. I have loaded your Hypertrophy Push/Pull/Legs split and your 2600 kcal Diet Plan. How can I help you reach your goals today?' },
+        { conversationId: chatConv._id, sender: 'user', message: 'What is the best pre-workout meal for energy?' },
+        { conversationId: chatConv._id, sender: 'ai', message: 'A great pre-workout meal combines complex carbohydrates with a moderate amount of fast-digesting protein about 60–90 minutes before training. For example: Oatmeal with 1 scoop whey protein or 4 egg whites and a banana. This will maximize glycogen stores for heavy lifting!' },
+      ]);
+      console.log('🌱 Seeded demo user chat conversation and coaching history');
+    }
   } catch (err) {
     console.error('Seed error:', err.message);
   }

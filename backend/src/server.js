@@ -14,6 +14,7 @@ import profileRoutes from './routes/profileRoutes.js';
 import dietRoutes from './routes/dietRoutes.js';
 import workoutRoutes from './routes/workoutRoutes.js';
 import progressRoutes from './routes/progressRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
 import { seedDemoUser } from './utils/seed.js';
 
 // Load Environment variables
@@ -122,6 +123,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/diet', dietRoutes);
 app.use('/api/workout', workoutRoutes);
 app.use('/api/progress', progressRoutes);
+app.use('/api/chat', chatRoutes);
 
 // ─── Socket.IO ──────────────────────────────────────────────
 io.on('connection', (socket) => {
