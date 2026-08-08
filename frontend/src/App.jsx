@@ -5,6 +5,7 @@ import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Onboarding from './pages/Onboarding.jsx';
 import Dashboard from './pages/Dashboard.jsx';
+import DietPlan from './pages/DietPlan.jsx';
 
 // Route guard — redirect to /login if not authenticated
 const ProtectedRoute = ({ children }) => {
@@ -38,6 +39,7 @@ function AppRoutes() {
       {/* Protected routes */}
       <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/diet" element={<ProtectedRoute><DietPlan /></ProtectedRoute>} />
 
       {/* 404 fallback */}
       <Route path="*" element={<Navigate to="/login" replace />} />
