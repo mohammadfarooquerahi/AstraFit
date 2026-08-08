@@ -43,6 +43,8 @@ const dietPlanSchema = new mongoose.Schema(
     generatedAt: { type: Date, default: Date.now },
     isAIGenerated: { type: Boolean, default: true },
     isActive: { type: Boolean, default: true },
+    adminEdited: { type: Boolean, default: false },
+    adminNotes: { type: String, default: '' },
     safetyDisclaimer: {
       type: String,
       default: 'This AI-generated plan is for general fitness guidance only — not medical advice.',

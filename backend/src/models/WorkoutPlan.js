@@ -34,6 +34,8 @@ const workoutPlanSchema = new mongoose.Schema(
     cooldownTips: { type: String, default: '5 mins static stretching for target muscles.' },
     isAIGenerated: { type: Boolean, default: true },
     isActive: { type: Boolean, default: true },
+    adminEdited: { type: Boolean, default: false },
+    adminNotes: { type: String, default: '' },
   },
   { timestamps: true }
 );

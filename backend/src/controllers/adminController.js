@@ -1,6 +1,6 @@
 import {
   User, Profile, AIUsageLog, DietPlan, WorkoutPlan,
-  ChatMessage, ProgressPhoto, AdminActionLog, Progress
+  ChatMessage, ChatConversation, ProgressPhoto, AdminActionLog, Progress
 } from '../models/index.js';
 
 // ─── 5.1 User Management ─────────────────────────────────────
@@ -215,21 +215,29 @@ export const editWorkoutPlan = async (req, res) => {
 export const getAllChats = async (req, res) => {
   try {
     const { flagged } = req.query;
-    const query = flagged === 'true' ? { isFlagged: true } : {};
-    const messages = await ChatMessage.find(query).populate('userId', 'name email').sort({ createdAt: -1 }).limit(200);
 
-    // Group by userId
-    const grouped = {};
-    messages.forEach(m => {
-      const uid = m.userId?._id?.toString() || 'unknown';
-      if (!grouped[uid]) grouped[uid] = { user: m.userId, messages: [] };
-      grouped[uid].messages.push(m);
-    });
+    // Get all conversations with their user info
+    const conversations = await ChatConversation.find()
+      .populate('userId', 'name email')
+      .sort({ createdAt: -1 })
+      .limit(50);
 
-    const conversations = Object.values(grouped);
+    const results = [];
+    for (const conv of conversations) {
+      const query = { conversationId: conv._id };
+      if (flagged === 'true') query.isFlagged = true;
+      const messages = await ChatMessage.find(query).sort({ createdAt: 1 }).limit(50);
+      if (messages.length > 0) {
+        results.push({
+          user: conv.userId,
+          conversationId: conv._id,
+          messages,
+        });
+      }
+    }
+
     const flaggedCount = await ChatMessage.countDocuments({ isFlagged: true });
-
-    return res.status(200).json({ success: true, data: { conversations, flaggedCount } });
+    return res.status(200).json({ success: true, data: { conversations: results, flaggedCount } });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Failed to fetch chats.' });
   }
