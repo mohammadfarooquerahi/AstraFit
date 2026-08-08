@@ -9,7 +9,7 @@ const aiUsageLogSchema = new mongoose.Schema(
     },
     provider: {
       type: String,
-      enum: ['openai', 'gemini', 'gemini-fallback', 'openai-fallback'],
+      enum: ['groq', 'groq-fallback', 'openai', 'gemini', 'gemini-fallback', 'openai-fallback'],
       required: true,
     },
     model: {

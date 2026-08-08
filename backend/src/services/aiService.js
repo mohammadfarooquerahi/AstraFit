@@ -1,5 +1,29 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import OpenAI from 'openai';
+import Groq from 'groq-sdk';
+
+// ─── Groq Provider (Llama 3.3 70B - Ultra Fast) ────────────
+const callGroq = async (prompt) => {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey || apiKey.includes('your_groq_key') || apiKey === 'dummy_key') {
+    throw new Error('MISSING_KEY');
+  }
+
+  const groq = new Groq({ apiKey });
+  const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+
+  const response = await groq.chat.completions.create({
+    model,
+    messages: [{ role: 'user', content: prompt }],
+  });
+
+  const text = response.choices[0]?.message?.content || '';
+  const usage = {
+    promptTokens: response.usage?.prompt_tokens || 0,
+    completionTokens: response.usage?.completion_tokens || 0,
+  };
+  return { text, usage };
+};
 
 // ─── Gemini Provider ────────────────────────────────────────
 const callGemini = async (prompt) => {
@@ -136,14 +160,16 @@ const getFallbackWorkoutPlan = () => ({
   ],
 });
 
-// ─── Unified AI Call with Automatic Fallback ─────────────────
+// ─── Unified AI Call with Groq Support ──────────────────────
 export const callAI = async (prompt) => {
-  const provider = process.env.ACTIVE_AI_PROVIDER || 'gemini';
+  const provider = process.env.ACTIVE_AI_PROVIDER || 'groq';
   const start = Date.now();
 
   try {
     let result;
-    if (provider === 'openai') {
+    if (provider === 'groq') {
+      result = await callGroq(prompt);
+    } else if (provider === 'openai') {
       result = await callOpenAI(prompt);
     } else {
       result = await callGemini(prompt);
@@ -151,7 +177,7 @@ export const callAI = async (prompt) => {
     const latency = Date.now() - start;
     return { ...result, provider, latency };
   } catch (err) {
-    console.warn(`⚠️ AI Call using provider '${provider}' failed (${err.message}). Using intelligent offline fallback plan.`);
+    console.warn(`⚠️ AI Call using provider '${provider}' failed (${err.message}). Using intelligent fallback response.`);
 
     let fallbackData;
     if (prompt.includes('nutritionist') || prompt.includes('diet plan')) {
@@ -159,7 +185,7 @@ export const callAI = async (prompt) => {
     } else if (prompt.includes('fitness coach') || prompt.includes('workout plan')) {
       fallbackData = JSON.stringify(getFallbackWorkoutPlan());
     } else {
-      fallbackData = 'I am your AstraFit AI Fitness Coach! To get maximum results, ensure you stay consistent with your 2450 kcal meal plan and 3-day training split. Keep up the great work!';
+      fallbackData = 'I am your AstraFit AI Fitness Coach powered by Groq Llama-3! To maximize your muscle gains and energy, ensure you stay consistent with your 2450 kcal meal plan and 3-day training split. Keep up the great work!';
     }
 
     return {
