@@ -209,6 +209,17 @@ export const seedDemoUser = async () => {
       });
       console.log('🌱 Seeded demo user body posture analysis report');
     }
+    // Seed sample progress photos if not exists
+    let photoCount = await ProgressPhoto.countDocuments({ userId: user._id });
+    if (photoCount === 0) {
+      await ProgressPhoto.insertMany([
+        { userId: user._id, weekNumber: 1, viewType: 'front', imagePath: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&auto=format&fit=crop&q=80', moderationStatus: 'Approved' },
+        { userId: user._id, weekNumber: 1, viewType: 'side', imagePath: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&auto=format&fit=crop&q=80', moderationStatus: 'Approved' },
+        { userId: user._id, weekNumber: 4, viewType: 'front', imagePath: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=600&auto=format&fit=crop&q=80', moderationStatus: 'Approved' },
+        { userId: user._id, weekNumber: 4, viewType: 'side', imagePath: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80', moderationStatus: 'Approved' },
+      ]);
+      console.log('🌱 Seeded demo user weekly progress photos');
+    }
   } catch (err) {
     console.error('Seed error:', err.message);
   }

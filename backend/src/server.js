@@ -18,6 +18,7 @@ import chatRoutes from './routes/chatRoutes.js';
 import habitRoutes from './routes/habitRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import bodyAnalysisRoutes from './routes/bodyAnalysisRoutes.js';
+import progressPhotoRoutes from './routes/progressPhotoRoutes.js';
 import { seedDemoUser } from './utils/seed.js';
 
 // Load Environment variables
@@ -130,6 +131,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/habits', habitRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/body-analysis', bodyAnalysisRoutes);
+app.use('/api/progress-photos', progressPhotoRoutes);
 
 // ─── Socket.IO ──────────────────────────────────────────────
 io.on('connection', (socket) => {
