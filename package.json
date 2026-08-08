@@ -1,0 +1,17 @@
+{
+  "name": "ai-fitness-coach-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Fitness Coach Platform - Monorepo",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "install:all": "npm install",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "start:backend": "npm start --workspace=backend",
+    "build:frontend": "npm run build --workspace=frontend"
+  }
+}
