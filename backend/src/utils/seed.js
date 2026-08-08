@@ -16,6 +16,20 @@ export const seedDemoUser = async () => {
       console.log('🌱 Seeded demo user account: farooq@gmail.com / password123');
     }
 
+    // Seed demo admin account
+    const adminEmail = 'admin@astrafit.com';
+    let admin = await User.findOne({ email: adminEmail });
+    if (!admin) {
+      await User.create({
+        name: 'Super Admin',
+        email: adminEmail,
+        password: 'admin123',
+        role: 'admin',
+        status: 'active',
+      });
+      console.log('🌱 Seeded demo admin account: admin@astrafit.com / admin123');
+    }
+
     // Seed profile if not exists
     let profile = await Profile.findOne({ userId: user._id });
     if (!profile) {

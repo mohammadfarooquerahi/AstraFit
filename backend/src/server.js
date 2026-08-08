@@ -16,6 +16,7 @@ import workoutRoutes from './routes/workoutRoutes.js';
 import progressRoutes from './routes/progressRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import habitRoutes from './routes/habitRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 import { seedDemoUser } from './utils/seed.js';
 
 // Load Environment variables
@@ -126,6 +127,7 @@ app.use('/api/workout', workoutRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/habits', habitRoutes);
+app.use('/api/admin', adminRoutes);
 
 // ─── Socket.IO ──────────────────────────────────────────────
 io.on('connection', (socket) => {
