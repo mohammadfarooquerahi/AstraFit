@@ -13,6 +13,7 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      // Local dev only — in production, frontend calls Railway URL directly
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true,
@@ -24,5 +25,9 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
   },
 });
