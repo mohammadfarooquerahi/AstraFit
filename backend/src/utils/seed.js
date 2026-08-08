@@ -1,4 +1,4 @@
-import { User, Profile, DietPlan, WorkoutPlan } from '../models/index.js';
+import { User, Profile, DietPlan, WorkoutPlan, Progress, ChatConversation, ChatMessage, Habit, BodyAnalysis, ProgressPhoto } from '../models/index.js';
 
 export const seedDemoUser = async () => {
   try {

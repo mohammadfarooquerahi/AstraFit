@@ -1,6 +1,6 @@
 import express from 'express';
 import http from 'http';
-import { Server } from 'socket.io';\
+import { Server } from 'socket.io';
 import mongoose from 'mongoose';
 import helmet from 'helmet';
 import cors from 'cors';
