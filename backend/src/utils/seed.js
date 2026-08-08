@@ -191,6 +191,24 @@ export const seedDemoUser = async () => {
       });
       console.log('🌱 Seeded demo user daily habit record');
     }
+    // Seed sample body analysis report if not exists
+    let bodyAnalysis = await BodyAnalysis.findOne({ userId: user._id });
+    if (!bodyAnalysis) {
+      await BodyAnalysis.create({
+        userId: user._id,
+        bmi: 23.5,
+        postureScore: 88,
+        poseAlignment: 'Good / Level Shoulders',
+        poseIndicators: {
+          shoulderAlignment: 'level',
+          hipAlignment: 'level',
+          forwardHeadPosture: false,
+          roundedShoulders: false,
+        },
+        notes: 'Landmarks indicate symmetric shoulder alignment and balanced posture.',
+      });
+      console.log('🌱 Seeded demo user body posture analysis report');
+    }
   } catch (err) {
     console.error('Seed error:', err.message);
   }
