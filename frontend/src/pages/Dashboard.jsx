@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useNavigate, Link } from 'react-router-dom';
-import { Dumbbell, LogOut, User, Utensils, Activity, TrendingUp, MessageCircle, ArrowRight } from 'lucide-react';
+import { Dumbbell, LogOut, User, Utensils, Activity, TrendingUp, MessageCircle, ArrowRight, Flame } from 'lucide-react';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -23,6 +23,9 @@ export default function Dashboard() {
           <span className="font-black text-white tracking-tight">ASTRA<span className="text-violet-400 font-light">FIT</span></span>
         </div>
         <div className="flex items-center gap-4">
+          <Link to="/habits" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold bg-amber-500/10 border border-amber-500/20 text-amber-400 px-3 py-1.5 rounded-xl hover:bg-amber-500/20 transition-all">
+            <Flame className="w-4 h-4 fill-amber-500" /> Daily Habits
+          </Link>
           <div className="flex items-center gap-2 text-slate-300">
             <User className="w-4 h-4 text-violet-400" />
             <span className="text-sm font-medium">{user?.name}</span>

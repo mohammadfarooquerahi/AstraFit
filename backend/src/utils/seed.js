@@ -159,6 +159,24 @@ export const seedDemoUser = async () => {
       ]);
       console.log('🌱 Seeded demo user chat conversation and coaching history');
     }
+    // Seed sample habit log for today if not exists
+    const todayStr = new Date().toISOString().split('T')[0];
+    let habit = await Habit.findOne({ userId: user._id, date: todayStr });
+    if (!habit) {
+      await Habit.create({
+        userId: user._id,
+        date: todayStr,
+        mealsTracked: 3,
+        mealsTarget: 3,
+        waterIntake: 2000,
+        waterTarget: 2500,
+        workoutCompleted: true,
+        sleepHours: 7.5,
+        stepsCount: 6400,
+        stepsTarget: 8000,
+      });
+      console.log('🌱 Seeded demo user daily habit record');
+    }
   } catch (err) {
     console.error('Seed error:', err.message);
   }

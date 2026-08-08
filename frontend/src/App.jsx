@@ -9,6 +9,7 @@ import DietPlan from './pages/DietPlan.jsx';
 import WorkoutPlan from './pages/WorkoutPlan.jsx';
 import ProgressTracker from './pages/ProgressTracker.jsx';
 import AIChatCoach from './pages/AIChatCoach.jsx';
+import HabitTracker from './pages/HabitTracker.jsx';
 
 // Route guard — redirect to /login if not authenticated
 const ProtectedRoute = ({ children }) => {
@@ -46,6 +47,7 @@ function AppRoutes() {
       <Route path="/workout" element={<ProtectedRoute><WorkoutPlan /></ProtectedRoute>} />
       <Route path="/progress" element={<ProtectedRoute><ProgressTracker /></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><AIChatCoach /></ProtectedRoute>} />
+      <Route path="/habits" element={<ProtectedRoute><HabitTracker /></ProtectedRoute>} />
 
       {/* 404 fallback */}
       <Route path="*" element={<Navigate to="/login" replace />} />
