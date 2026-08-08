@@ -5,7 +5,11 @@ import mongoose from 'mongoose';
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+
+// Routes
+import authRoutes from './routes/authRoutes.js';
 
 // Load Environment variables
 dotenv.config();
@@ -13,7 +17,7 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-// Initialize Socket.io Server with CORS configurations
+// Initialize Socket.io Server
 const io = new Server(server, {
   cors: {
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
@@ -26,33 +30,31 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/ai-fitness-coach';
 
-// Allowed origins — local dev + production Vercel URL
+// Allowed origins for CORS
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   process.env.CLIENT_URL,
 ].filter(Boolean);
 
-// Middlewares
+// ─── Middlewares ────────────────────────────────────────────
 app.use(helmet());
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, Postman)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
+    if (allowedOrigins.includes(origin)) return callback(null, true);
     return callback(new Error(`CORS policy blocked origin: ${origin}`));
   },
   credentials: true,
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser()); // Required for reading refresh token cookies
 
-// Rate Limiting to prevent API spamming
+// ─── Rate Limiting ──────────────────────────────────────────
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per window
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -60,28 +62,26 @@ const limiter = rateLimit({
     message: 'Too many requests from this IP, please try again after 15 minutes.',
   },
 });
-app.use('/api/', limiter);
 
-// Connect to MongoDB
-mongoose
-  .connect(MONGODB_URI)
-  .then(() => {
-    console.log('Successfully connected to MongoDB Database.');
-  })
-  .catch((err) => {
-    console.error('MongoDB database connection error: ', err);
-  });
-
-// Socket.io connection logic
-io.on('connection', (socket) => {
-  console.log(`Socket client connected: ${socket.id}`);
-
-  socket.on('disconnect', () => {
-    console.log(`Socket client disconnected: ${socket.id}`);
-  });
+// Stricter limiter for auth routes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: {
+    success: false,
+    message: 'Too many authentication attempts. Please try again after 15 minutes.',
+  },
 });
 
-// Health check route
+app.use('/api/', limiter);
+
+// ─── Database Connection ────────────────────────────────────
+mongoose
+  .connect(MONGODB_URI)
+  .then(() => console.log('✅ Successfully connected to MongoDB Database.'))
+  .catch((err) => console.error('❌ MongoDB connection error:', err.message));
+
+// ─── API Routes ─────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
@@ -90,11 +90,22 @@ app.get('/api/health', (req, res) => {
       timestamp: new Date(),
       uptime: process.uptime(),
       dbStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+      environment: process.env.NODE_ENV || 'development',
     },
   });
 });
 
-// Fallback Route for non-existent routes
+app.use('/api/auth', authLimiter, authRoutes);
+
+// ─── Socket.IO ──────────────────────────────────────────────
+io.on('connection', (socket) => {
+  console.log(`🔌 Socket connected: ${socket.id}`);
+  socket.on('disconnect', () => {
+    console.log(`🔌 Socket disconnected: ${socket.id}`);
+  });
+});
+
+// ─── 404 Handler ────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -102,9 +113,9 @@ app.use((req, res) => {
   });
 });
 
-// Global Error Handler
+// ─── Global Error Handler ────────────────────────────────────
 app.use((err, req, res, next) => {
-  console.error('Unhandled Server Error:', err);
+  console.error('Server Error:', err);
   res.status(500).json({
     success: false,
     message: 'An internal server error occurred.',
@@ -112,7 +123,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start Server
+// ─── Start Server ────────────────────────────────────────────
 server.listen(PORT, () => {
-  console.log(`AI Fitness Coach Backend is running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode.`);
+  console.log(`🚀 AstraFit Backend running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
 });
