@@ -7,6 +7,7 @@ import Onboarding from './pages/Onboarding.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import DietPlan from './pages/DietPlan.jsx';
 import WorkoutPlan from './pages/WorkoutPlan.jsx';
+import ProgressTracker from './pages/ProgressTracker.jsx';
 
 // Route guard — redirect to /login if not authenticated
 const ProtectedRoute = ({ children }) => {
@@ -42,6 +43,7 @@ function AppRoutes() {
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/diet" element={<ProtectedRoute><DietPlan /></ProtectedRoute>} />
       <Route path="/workout" element={<ProtectedRoute><WorkoutPlan /></ProtectedRoute>} />
+      <Route path="/progress" element={<ProtectedRoute><ProgressTracker /></ProtectedRoute>} />
 
       {/* 404 fallback */}
       <Route path="*" element={<Navigate to="/login" replace />} />

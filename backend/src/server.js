@@ -13,6 +13,7 @@ import authRoutes from './routes/authRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
 import dietRoutes from './routes/dietRoutes.js';
 import workoutRoutes from './routes/workoutRoutes.js';
+import progressRoutes from './routes/progressRoutes.js';
 import { seedDemoUser } from './utils/seed.js';
 
 // Load Environment variables
@@ -120,6 +121,7 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/diet', dietRoutes);
 app.use('/api/workout', workoutRoutes);
+app.use('/api/progress', progressRoutes);
 
 // ─── Socket.IO ──────────────────────────────────────────────
 io.on('connection', (socket) => {

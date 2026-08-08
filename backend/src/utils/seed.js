@@ -136,6 +136,18 @@ export const seedDemoUser = async () => {
       });
       console.log('🌱 Seeded demo AI workout plan');
     }
+    // Seed sample progress logs if not exists
+    let count = await Progress.countDocuments({ userId: user._id });
+    if (count === 0) {
+      await Progress.insertMany([
+        { userId: user._id, date: '2026-07-10', weight: 75.0, chestSize: 102, waistSize: 86, hipSize: 98, fitnessScore: 65 },
+        { userId: user._id, date: '2026-07-17', weight: 74.2, chestSize: 102, waistSize: 85, hipSize: 97, fitnessScore: 68 },
+        { userId: user._id, date: '2026-07-24', weight: 73.5, chestSize: 103, waistSize: 84, hipSize: 97, fitnessScore: 72 },
+        { userId: user._id, date: '2026-07-31', weight: 72.8, chestSize: 104, waistSize: 83, hipSize: 96, fitnessScore: 78 },
+        { userId: user._id, date: '2026-08-07', weight: 72.0, chestSize: 105, waistSize: 82, hipSize: 96, fitnessScore: 84 },
+      ]);
+      console.log('🌱 Seeded demo user progress history logs');
+    }
   } catch (err) {
     console.error('Seed error:', err.message);
   }
