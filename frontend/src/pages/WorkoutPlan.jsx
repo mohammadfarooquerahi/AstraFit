@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
 import {
   Dumbbell, Zap, Clock, RefreshCw, ArrowLeft, Loader2,
-  AlertCircle, Flame, Shield, CheckCircle2, ChevronRight, Play
+  AlertCircle, Shield
 } from 'lucide-react';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -107,7 +107,6 @@ export default function WorkoutPlan() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-        {/* Loading state */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-24 gap-3">
             <Loader2 className="w-8 h-8 text-violet-400 animate-spin" />
@@ -115,14 +114,12 @@ export default function WorkoutPlan() {
           </div>
         )}
 
-        {/* Error notice */}
         {error && (
           <div className="flex items-center gap-2 bg-red-950/40 border border-red-800/50 text-red-300 text-sm px-4 py-3 rounded-xl mb-6">
             <AlertCircle className="w-4 h-4 shrink-0" />{error}
           </div>
         )}
 
-        {/* No plan exists yet */}
         {!loading && !plan && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-20 h-20 bg-gradient-to-tr from-violet-600/20 to-indigo-600/10 border border-violet-500/30 rounded-3xl flex items-center justify-center mb-6">
@@ -142,10 +139,8 @@ export default function WorkoutPlan() {
           </div>
         )}
 
-        {/* Plan loaded */}
         {!loading && plan && (
-          <>
-            {/* Header Title & Split Banner */}
+          <div>
             <div className="glass-panel border border-slate-800 rounded-3xl p-6 mb-8 bg-gradient-to-r from-violet-950/30 via-slate-900 to-indigo-950/20">
               <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
                 <div>
@@ -163,7 +158,6 @@ export default function WorkoutPlan() {
               {plan.summary && <p className="text-sm text-slate-300 mt-2">{plan.summary}</p>}
             </div>
 
-            {/* Day Selector Tabs */}
             <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
               {DAYS.map((day, i) => {
                 const dayData = plan.schedule?.find(s => s.day === day) || plan.schedule?.[i];
@@ -184,7 +178,6 @@ export default function WorkoutPlan() {
               })}
             </div>
 
-            {/* Day Detail */}
             {currentDay && (
               <div>
                 <div className="flex items-center justify-between mb-5 bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60">
@@ -200,7 +193,6 @@ export default function WorkoutPlan() {
                   )}
                 </div>
 
-                {/* Rest Day view */}
                 {currentDay.isRestDay || currentDay.exercises?.length === 0 ? (
                   <div className="glass-panel border border-slate-800 rounded-3xl p-10 text-center">
                     <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -212,7 +204,6 @@ export default function WorkoutPlan() {
                     </p>
                   </div>
                 ) : (
-                  /* Exercises List */
                   <div className="space-y-3">
                     {currentDay.exercises.map((exercise, index) => (
                       <ExerciseCard key={index} exercise={exercise} index={index} />
@@ -220,7 +211,6 @@ export default function WorkoutPlan() {
                   </div>
                 )}
 
-                {/* Warmup & Cooldown Tips */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
                   {plan.warmupTips && (
                     <div className="glass-panel border border-slate-800 rounded-2xl p-4">
@@ -235,9 +225,9 @@ export default function WorkoutPlan() {
                     </div>
                   )}
                 </div>
-              </>
+              </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </div>
