@@ -1,4 +1,33 @@
 import { BodyAnalysis, Profile } from '../models/index.js';
+import { scanBodyImage } from '../services/aiService.js';
+
+// POST /api/body-analysis/scan — Detect if human & analyze frame
+export const scanImage = async (req, res) => {
+  try {
+    const { imageBase64, mimeType, fileName } = req.body;
+    if (!imageBase64) {
+      return res.status(400).json({ success: false, message: 'Image data is required.' });
+    }
+
+    const result = await scanBodyImage(imageBase64, mimeType, fileName);
+    if (!result.isHuman) {
+      return res.status(422).json({
+        success: false,
+        isHuman: false,
+        message: result.error || 'No human detected in image. Please upload a clear photo of your body.'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      isHuman: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('Vision scan error:', error);
+    return res.status(500).json({ success: false, message: 'Vision scan failed. Please try again.' });
+  }
+};
 
 // POST /api/body-analysis — Save posture & vision analysis report
 export const saveAnalysis = async (req, res) => {

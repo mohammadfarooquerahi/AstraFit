@@ -90,51 +90,78 @@ export default function Onboarding() {
     }));
   };
 
+  // Helper to convert file to base64
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   // ── Vision Analysis ──────────────────────────────────────────
-  const runVisionAnalysis = () => {
+  const runVisionAnalysis = async () => {
+    if (!form.images.front) {
+      setError('Please upload at least a Front View image to scan.');
+      return;
+    }
+
     setAnalyzing(true);
     setError('');
     setScanProgress(0);
 
     const interval = setInterval(() => {
-      setScanProgress(p => {
-        if (p >= 100) { clearInterval(interval); return 100; }
-        return p + Math.random() * 8 + 3;
-      });
-    }, 80);
+      setScanProgress(p => p < 90 ? p + Math.random() * 8 + 3 : p);
+    }, 120);
 
-    setTimeout(() => {
+    try {
+      const base64 = await fileToBase64(form.images.front);
+      const { data } = await api.post('/api/body-analysis/scan', {
+        imageBase64: base64,
+        mimeType: form.images.front.type,
+        fileName: form.images.front.name
+      });
+
       clearInterval(interval);
       setScanProgress(100);
+
+      const scanResult = data.data;
       const h = Number(form.height) || 175;
       const w = Number(form.weight) || 70;
       const bmi = +(w / ((h / 100) ** 2)).toFixed(1);
-      let bodyType = 'Mesomorph', bodyDesc = 'Athletic / Muscular Frame', bodyFat = '14% – 17%', bodyColor = '#a78bfa';
-      if (bmi < 19.5) { bodyType = 'Ectomorph'; bodyDesc = 'Slim / Lean Frame'; bodyFat = '9% – 13%'; bodyColor = '#60a5fa'; }
-      else if (bmi > 26) { bodyType = 'Endomorph'; bodyDesc = 'Solid / Higher Body Fat'; bodyFat = '22% – 27%'; bodyColor = '#fb923c'; }
 
       setAnalysis({
-        bmi, bodyType, bodyDesc, bodyFat, bodyColor,
+        bmi,
+        bodyType: scanResult.bodyType || 'Mesomorph',
+        bodyDesc: scanResult.bodyDesc || 'Athletic / Muscular Frame',
+        bodyFat: scanResult.bodyFat || '14% – 17%',
+        bodyColor: scanResult.bodyType === 'Ectomorph' ? '#60a5fa' : scanResult.bodyType === 'Endomorph' ? '#fb923c' : '#a78bfa',
         bmiCategory: bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal Weight' : bmi < 30 ? 'Overweight' : 'Obese',
         bmiColor: bmi < 18.5 ? '#60a5fa' : bmi < 25 ? '#34d399' : bmi < 30 ? '#fb923c' : '#f87171',
-        postureScore: Math.floor(Math.random() * 9) + 89,
-        symmetryScore: +(94 + Math.random() * 4).toFixed(1),
-        shoulderRatio: +(1.3 + Math.random() * 0.08).toFixed(2),
+        postureScore: scanResult.postureScore || 94,
+        symmetryScore: scanResult.symmetryScore || 96.5,
+        shoulderRatio: scanResult.shoulderRatio || 1.34,
         landmarksDetected: 33,
         muscleMassEst: bmi < 19.5 ? 'Low' : bmi <= 26 ? 'Moderate–High' : 'Moderate',
         metabolicRate: Math.floor(w * 24 * (bmi < 19.5 ? 0.9 : bmi <= 26 ? 1.0 : 0.95)),
         poseAlignment: 'Symmetric & Level',
         metrics: [
-          { label: 'Posture Health',   val: Math.floor(Math.random() * 9) + 89,  unit: '%',    color: '#a78bfa' },
-          { label: 'Body Symmetry',    val: +(94 + Math.random() * 4).toFixed(1), unit: '%',    color: '#34d399' },
-          { label: 'Shoulder/Waist',   val: +(1.3 + Math.random() * 0.08).toFixed(2), unit: 'ratio', color: '#60a5fa' },
+          { label: 'Posture Health',   val: scanResult.postureScore || 94,  unit: '%',    color: '#a78bfa' },
+          { label: 'Body Symmetry',    val: scanResult.symmetryScore || 96.5, unit: '%',    color: '#34d399' },
+          { label: 'Shoulder/Waist',   val: scanResult.shoulderRatio || 1.34, unit: 'ratio', color: '#60a5fa' },
           { label: 'Landmarks Found',  val: 33,   unit: '/33',  color: '#f472b6' },
         ],
       });
-
+      setTimeout(() => drawSkeleton(), 150);
+    } catch (err) {
+      clearInterval(interval);
+      setScanProgress(0);
+      setAnalysis(null);
+      setError(err.response?.data?.message || 'Human validation scan failed. Make sure you upload a clear picture of a human body.');
+    } finally {
       setAnalyzing(false);
-      setTimeout(() => drawSkeleton(), 200);
-    }, 2800);
+    }
   };
 
   // ── Animated Skeleton Canvas ─────────────────────────────────

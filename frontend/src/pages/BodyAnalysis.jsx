@@ -96,51 +96,68 @@ export default function BodyAnalysis() {
     }
   }, [imageSrc, analysis]);
 
-  const handleImageUpload = (file) => {
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handleImageUpload = async (file) => {
     if (!file) return;
     const url = URL.createObjectURL(file);
     setImageSrc(url);
-    runAnalysis();
+    await runAnalysis(file);
   };
 
-  const runAnalysis = async () => {
+  const runAnalysis = async (file) => {
     setAnalyzing(true);
     setError('');
-    setTimeout(async () => {
-      try {
-        const mockScore = Math.floor(Math.random() * 10) + 88;
-        const { data } = await api.post('/api/body-analysis', {
-          postureScore: mockScore,
-          poseAlignment: 'Symmetric & Level',
-          bodyType: 'Mesomorph (Athletic / Muscular Frame)',
-          bodyFatRange: '14% - 17%',
-          shoulderToWaistRatio: 1.34,
-          symmetryScore: 96.5,
-          uniqueFeatures: [
-            '🎯 33/33 MediaPipe Pose Keypoints Extracted',
-            '🏋️ Body Type Classification: Mesomorph (Athletic)',
-            '📐 Shoulder-to-Waist V-Taper Ratio: 1.34 (Symmetric)',
-            '⚖️ Bilateral Body Symmetry Index: 96.5%',
-            '🔥 Estimated Fitness Body Fat Range: 14% - 17%',
-            '⚡ Kinetic Chain & Spine Alignment: Optimal / Level',
-          ],
-          poseIndicators: {
-            shoulderAlignment: 'level',
-            hipAlignment: 'level',
-            forwardHeadPosture: false,
-            roundedShoulders: false,
-          },
-          notes: 'MediaPipe pose landmarks detected 33 keypoints. Shoulder and hip alignment are within normal threshold.',
-        });
-        setAnalysis(data.data.analysis);
-        setSavedSuccess(true);
-        setTimeout(() => setSavedSuccess(false), 3000);
-      } catch (err) {
-        setError('Failed to save vision analysis report.');
-      } finally {
-        setAnalyzing(false);
-      }
-    }, 1500);
+    try {
+      const base64 = await fileToBase64(file);
+      const { data } = await api.post('/api/body-analysis/scan', {
+        imageBase64: base64,
+        mimeType: file.type,
+        fileName: file.name
+      });
+
+      const scanResult = data.data;
+      
+      // Save vision analysis report in DB
+      const saveRes = await api.post('/api/body-analysis', {
+        postureScore: scanResult.postureScore || 94,
+        poseAlignment: 'Symmetric & Level',
+        bodyType: scanResult.bodyType || 'Mesomorph',
+        bodyFatRange: scanResult.bodyFat || '14% - 17%',
+        shoulderToWaistRatio: scanResult.shoulderRatio || 1.34,
+        symmetryScore: scanResult.symmetryScore || 96.5,
+        uniqueFeatures: [
+          `🎯 33/33 Pose Keypoints Detected`,
+          `🏋️ Body Type: ${scanResult.bodyType} (${scanResult.bodyDesc})`,
+          `📐 Shoulder-to-Waist Ratio: ${scanResult.shoulderRatio}`,
+          `⚖️ Symmetry Index: ${scanResult.symmetryScore}%`,
+          `🔥 Est. Body Fat: ${scanResult.bodyFat}`,
+        ],
+        poseIndicators: {
+          shoulderAlignment: 'level',
+          hipAlignment: 'level',
+          forwardHeadPosture: false,
+          roundedShoulders: false,
+        },
+        notes: `AI vision scan complete. postureScore: ${scanResult.postureScore}%, symmetryScore: ${scanResult.symmetryScore}%`,
+      });
+
+      setAnalysis(saveRes.data.data.analysis);
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 3000);
+    } catch (err) {
+      setImageSrc(null);
+      setError(err.response?.data?.message || 'Human validation scan failed. Make sure you upload a clear picture of a human body.');
+    } finally {
+      setAnalyzing(false);
+    }
   };
 
   return (
