@@ -271,7 +271,7 @@ Return ONLY a valid JSON object matching this schema:
         throw new Error('MISSING_KEY');
       }
       const groq = new Groq({ apiKey });
-      const model = 'llama-3.2-11b-vision-preview'; // Use Llama 3.2 Vision Model
+      const model = 'llama-3.2-11b-vision-instruct'; // Use Llama 3.2 Vision Model
 
       const response = await groq.chat.completions.create({
         model,
