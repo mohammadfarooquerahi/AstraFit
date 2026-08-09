@@ -53,7 +53,7 @@ export const generateWorkoutPlan = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Workout plan generated successfully.',
-      data: { workoutPlan },
+      data: { workoutPlan, profile },
     });
   } catch (error) {
     console.error('Workout plan generation error:', error);
@@ -68,13 +68,16 @@ export const generateWorkoutPlan = async (req, res) => {
 export const getWorkoutPlan = async (req, res) => {
   try {
     const workoutPlan = await WorkoutPlan.findOne({ userId: req.user._id, isActive: true });
+    const profile = await Profile.findOne({ userId: req.user._id });
+    
     if (!workoutPlan) {
       return res.status(404).json({
         success: false,
         message: 'No active workout plan found. Generate one first.',
+        data: { profile }
       });
     }
-    return res.status(200).json({ success: true, data: { workoutPlan } });
+    return res.status(200).json({ success: true, data: { workoutPlan, profile } });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Failed to fetch workout plan.' });
   }
