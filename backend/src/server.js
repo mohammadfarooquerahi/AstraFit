@@ -32,7 +32,7 @@ const server = http.createServer(app);
 // ─── Socket.IO Server with JWT Auth ─────────────────────────
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: true,
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -64,14 +64,23 @@ const allowedOrigins = [
   'http://localhost:5174',
   'http://localhost:3000',
   process.env.CLIENT_URL,
+  process.env.FRONTEND_URL,
 ].filter(Boolean);
 
 // ─── Middlewares ────────────────────────────────────────────
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({
   origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, Postman)
     if (!origin) return callback(null, true);
+    // Allow exact matches
     if (allowedOrigins.includes(origin)) return callback(null, true);
+    // Allow any vercel.app or railway.app subdomain (preview deployments)
+    if (
+      origin.endsWith('.vercel.app') ||
+      origin.endsWith('.railway.app') ||
+      origin.endsWith('.onrender.com')
+    ) return callback(null, true);
     return callback(new Error(`CORS policy blocked origin: ${origin}`));
   },
   credentials: true,
