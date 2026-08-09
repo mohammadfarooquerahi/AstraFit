@@ -52,7 +52,7 @@ export const generateDietPlan = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Diet plan generated successfully.',
-      data: { dietPlan },
+      data: { dietPlan, profile },
     });
   } catch (error) {
     console.error('Diet plan generation error:', error);
@@ -67,13 +67,16 @@ export const generateDietPlan = async (req, res) => {
 export const getDietPlan = async (req, res) => {
   try {
     const dietPlan = await DietPlan.findOne({ userId: req.user._id, isActive: true });
+    const profile = await Profile.findOne({ userId: req.user._id });
+    
     if (!dietPlan) {
       return res.status(404).json({
         success: false,
         message: 'No diet plan found. Generate one first.',
+        data: { profile }
       });
     }
-    return res.status(200).json({ success: true, data: { dietPlan } });
+    return res.status(200).json({ success: true, data: { dietPlan, profile } });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Failed to fetch diet plan.' });
   }
