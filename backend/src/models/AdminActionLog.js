@@ -10,11 +10,10 @@ const adminActionLogSchema = new mongoose.Schema(
     },
     adminEmail: {
       type: String,
-      required: true,
+      default: 'admin@astrafit.com',
     },
     action: {
       type: String,
-      enum: ['BAN_USER', 'UNBAN_USER', 'EDIT_DIET_PLAN', 'EDIT_WORKOUT_PLAN', 'IMAGE_MODERATION', 'EDIT_PROMPT', 'SYSTEM_SETTINGS'],
       required: true,
       index: true,
     },
@@ -25,12 +24,12 @@ const adminActionLogSchema = new mongoose.Schema(
     },
     reason: {
       type: String,
-      required: [true, 'Reason for action is required'],
+      default: 'Admin action performed via control panel',
       trim: true,
     },
     details: {
-      type: Map,
-      of: mongoose.Schema.Types.Mixed,
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
     },
   },
   {

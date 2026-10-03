@@ -39,13 +39,27 @@ export const getAllUsers = async (req, res) => {
 // PUT /api/admin/users/:id/status
 export const updateUserStatus = async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, reason } = req.body;
     if (!['active', 'inactive', 'banned'].includes(status)) {
       return res.status(400).json({ success: false, message: 'Invalid status value.' });
     }
     const user = await User.findByIdAndUpdate(req.params.id, { status }, { new: true }).select('-password');
-    await AdminActionLog.create({ adminId: req.user._id, action: 'UPDATE_USER_STATUS', targetUser: req.params.id, details: `Changed status to ${status}` });
-    return res.status(200).json({ success: true, message: `User ${status}.`, data: { user } });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+    try {
+      await AdminActionLog.create({
+        adminId: req.user._id,
+        adminEmail: req.user.email || 'admin@astrafit.com',
+        action: status === 'banned' ? 'BAN_USER' : status === 'active' ? 'UNBAN_USER' : 'UPDATE_USER_STATUS',
+        targetUserId: req.params.id,
+        reason: reason || `Admin set user status to ${status}`,
+        details: { status, userId: req.params.id, userName: user.name },
+      });
+    } catch (logErr) {
+      console.warn('Admin action log warning:', logErr.message);
+    }
+    return res.status(200).json({ success: true, message: `User status changed to ${status}.`, data: { user } });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Failed to update user status.' });
   }
@@ -59,8 +73,22 @@ export const updateUserRole = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid role.' });
     }
     const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true }).select('-password');
-    await AdminActionLog.create({ adminId: req.user._id, action: 'UPDATE_USER_ROLE', targetUser: req.params.id, details: `Changed role to ${role}` });
-    return res.status(200).json({ success: true, data: { user } });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+    try {
+      await AdminActionLog.create({
+        adminId: req.user._id,
+        adminEmail: req.user.email || 'admin@astrafit.com',
+        action: 'UPDATE_USER_ROLE',
+        targetUserId: req.params.id,
+        reason: `Changed user role to ${role}`,
+        details: { role, userId: req.params.id, userName: user.name },
+      });
+    } catch (logErr) {
+      console.warn('Admin action log warning:', logErr.message);
+    }
+    return res.status(200).json({ success: true, message: `Role updated to ${role}.`, data: { user } });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Failed to update role.' });
   }
@@ -178,7 +206,17 @@ export const moderatePhoto = async (req, res) => {
   try {
     const { status, reason } = req.body;
     const photo = await ProgressPhoto.findByIdAndUpdate(req.params.id, { moderationStatus: status, moderationReason: reason }, { new: true });
-    await AdminActionLog.create({ adminId: req.user._id, action: 'MODERATE_PHOTO', details: `Photo ${req.params.id} set to ${status}` });
+    try {
+      await AdminActionLog.create({
+        adminId: req.user._id,
+        adminEmail: req.user.email || 'admin@astrafit.com',
+        action: 'IMAGE_MODERATION',
+        reason: reason || `Photo set to ${status}`,
+        details: { photoId: req.params.id, status },
+      });
+    } catch (logErr) {
+      console.warn('Admin log error:', logErr.message);
+    }
     return res.status(200).json({ success: true, data: { photo } });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Failed to moderate photo.' });
@@ -191,7 +229,17 @@ export const moderatePhoto = async (req, res) => {
 export const editDietPlan = async (req, res) => {
   try {
     const plan = await DietPlan.findByIdAndUpdate(req.params.id, { ...req.body, adminEdited: true }, { new: true });
-    await AdminActionLog.create({ adminId: req.user._id, action: 'EDIT_DIET_PLAN', details: `Edited diet plan ${req.params.id}` });
+    try {
+      await AdminActionLog.create({
+        adminId: req.user._id,
+        adminEmail: req.user.email || 'admin@astrafit.com',
+        action: 'EDIT_DIET_PLAN',
+        reason: req.body.adminNotes || 'Admin edited diet plan',
+        details: { planId: req.params.id, updates: req.body },
+      });
+    } catch (logErr) {
+      console.warn('Admin log error:', logErr.message);
+    }
     return res.status(200).json({ success: true, data: { plan } });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Failed to edit diet plan.' });
@@ -202,7 +250,17 @@ export const editDietPlan = async (req, res) => {
 export const editWorkoutPlan = async (req, res) => {
   try {
     const plan = await WorkoutPlan.findByIdAndUpdate(req.params.id, { ...req.body, adminEdited: true }, { new: true });
-    await AdminActionLog.create({ adminId: req.user._id, action: 'EDIT_WORKOUT_PLAN', details: `Edited workout plan ${req.params.id}` });
+    try {
+      await AdminActionLog.create({
+        adminId: req.user._id,
+        adminEmail: req.user.email || 'admin@astrafit.com',
+        action: 'EDIT_WORKOUT_PLAN',
+        reason: req.body.adminNotes || 'Admin edited workout plan',
+        details: { planId: req.params.id, updates: req.body },
+      });
+    } catch (logErr) {
+      console.warn('Admin log error:', logErr.message);
+    }
     return res.status(200).json({ success: true, data: { plan } });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Failed to edit workout plan.' });
@@ -248,7 +306,17 @@ export const flagChatMessage = async (req, res) => {
   try {
     const { isFlagged } = req.body;
     const message = await ChatMessage.findByIdAndUpdate(req.params.id, { isFlagged }, { new: true });
-    await AdminActionLog.create({ adminId: req.user._id, action: isFlagged ? 'FLAG_CHAT' : 'UNFLAG_CHAT', details: `Message ${req.params.id}` });
+    try {
+      await AdminActionLog.create({
+        adminId: req.user._id,
+        adminEmail: req.user.email || 'admin@astrafit.com',
+        action: isFlagged ? 'FLAG_CHAT' : 'UNFLAG_CHAT',
+        reason: isFlagged ? 'Flagged message for review' : 'Unflagged message',
+        details: { messageId: req.params.id },
+      });
+    } catch (logErr) {
+      console.warn('Admin log error:', logErr.message);
+    }
     return res.status(200).json({ success: true, data: { message } });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Failed to flag message.' });

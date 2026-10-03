@@ -97,19 +97,30 @@ app.use('/api/', (req, res, next) => {
   next();
 });
 
-// ─── Database Connection ────────────────────────────────────
+// ─── Database Connection with In-Memory Fallback ────────────
 const connectDB = async () => {
   try {
     await mongoose.connect(MONGODB_URI, {
-      serverSelectionTimeoutMS: 15000,
+      serverSelectionTimeoutMS: 4000,
       bufferCommands: true,
     });
     console.log('✅ Successfully connected to MongoDB Database.');
     await seedDemoUser();
   } catch (err) {
-    console.error('❌ MongoDB Atlas connection error:', err.message);
-    console.log('⚠️ Retrying MongoDB Atlas connection...');
-    setTimeout(connectDB, 3000);
+    console.warn(`⚠️ Primary MongoDB connection failed (${err.message}).`);
+    console.log('🧠 Launching embedded In-Memory MongoDB instance for seamless local testing...');
+    try {
+      const { MongoMemoryServer } = await import('mongodb-memory-server');
+      const mongod = await MongoMemoryServer.create();
+      const memUri = mongod.getUri();
+      await mongoose.connect(memUri);
+      console.log(`✅ Connected to Embedded In-Memory MongoDB Database (${memUri})`);
+      await seedDemoUser();
+    } catch (memErr) {
+      console.error('❌ Embedded MongoDB error:', memErr.message);
+      console.log('⚠️ Retrying MongoDB connection in 5s...');
+      setTimeout(connectDB, 5000);
+    }
   }
 };
 connectDB();

@@ -6,15 +6,15 @@ import NotificationBell from '../components/NotificationBell.jsx';
 import {
   Dumbbell, LogOut, User, Utensils, Activity, TrendingUp,
   MessageCircle, ArrowRight, Flame, Shield, Scan, Camera,
-  Zap, Sparkles, Star, Trophy, Target, CheckCircle2
+  Sparkles, Star, Trophy, Target, CheckCircle2
 } from 'lucide-react';
 
 const ACHIEVEMENTS = [
-  { id: '7day', label: '7-Day Streak', icon: '🔥', desc: 'Consistent for 7 days', color: 'text-amber-400', unlocked: true },
-  { id: 'first_plan', label: 'First Plan', icon: '🎯', desc: 'Generated first AI plan', color: 'text-emerald-400', unlocked: true },
-  { id: '10_workouts', label: '10 Workouts', icon: '💪', desc: 'Completed 10 sessions', color: 'text-violet-400', unlocked: true },
-  { id: '100_water', label: 'Hydration Pro', icon: '💧', desc: 'Logged 100 glasses', color: 'text-blue-400', unlocked: false },
-  { id: '30_streak', label: '30-Day Streak', icon: '⚡', desc: 'Unbreakable commitment', color: 'text-rose-400', unlocked: false },
+  { id: '7day', label: '7-Day Streak', icon: '🔥', desc: 'Consistent workouts for 7 consecutive days', unlocked: true },
+  { id: 'first_plan', label: 'First Plan Created', icon: '🎯', desc: 'Generated personalized fitness plan', unlocked: true },
+  { id: '10_workouts', label: '10 Workouts Completed', icon: '💪', desc: 'Logged 10 active training sessions', unlocked: true },
+  { id: '100_water', label: 'Hydration Target', icon: '💧', desc: 'Hit daily hydration goals consistently', unlocked: false },
+  { id: '30_streak', label: '30-Day Milestone', icon: '⚡', desc: 'Dedicated commitment for a full month', unlocked: false },
 ];
 
 export default function Dashboard() {
@@ -48,154 +48,247 @@ export default function Dashboard() {
     load();
   }, []);
 
-  const handleLogout = async () => { await logout(); navigate('/login'); };
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
-  const scoreColor = stats.fitnessScore >= 80 ? 'text-emerald-400' : stats.fitnessScore >= 60 ? 'text-amber-400' : 'text-red-400';
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      {/* Navbar */}
-      <header className="border-b border-slate-800/80 px-4 sm:px-6 py-4 flex items-center justify-between bg-slate-950/90 backdrop-blur sticky top-0 z-40">
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 bg-gradient-to-tr from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/20">
-            <Dumbbell className="w-5 h-5 text-white" />
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      {/* Top Navbar */}
+      <header className="border-b border-slate-200/90 px-4 sm:px-8 py-3.5 flex items-center justify-between bg-white sticky top-0 z-40 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-sm">
+            <Dumbbell className="w-5 h-5" />
           </div>
-          <span className="font-black text-lg text-white tracking-tight">ASTRA<span className="text-violet-400 font-light">FIT</span></span>
+          <div>
+            <span className="font-bold text-lg text-slate-900 tracking-tight">
+              Astra<span className="text-indigo-600">Fit</span>
+            </span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:gap-3">
           {user?.role === 'admin' && (
-            <Link to="/admin/dashboard" className="flex items-center gap-1.5 text-xs font-semibold bg-violet-500/10 border border-violet-500/20 text-violet-300 px-3 py-1.5 rounded-xl hover:bg-violet-500/20 transition-all">
-              <Shield className="w-3.5 h-3.5 text-violet-400" /> Admin
+            <Link
+              to="/admin/dashboard"
+              className="flex items-center gap-1.5 text-xs font-semibold bg-indigo-50 border border-indigo-200 text-indigo-700 px-3 py-1.5 rounded-xl hover:bg-indigo-100 transition-all"
+            >
+              <Shield className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Admin Panel</span>
             </Link>
           )}
-          <Link to="/habits" className="flex items-center gap-1.5 text-xs font-semibold bg-amber-500/10 border border-amber-500/20 text-amber-400 px-3 py-1.5 rounded-xl hover:bg-amber-500/20 transition-all">
-            <Flame className="w-3.5 h-3.5 fill-amber-500" /> {stats.streak}d 🔥
+
+          <Link
+            to="/habits"
+            className="flex items-center gap-1.5 text-xs font-semibold bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-xl hover:bg-amber-100 transition-all shadow-sm"
+          >
+            <Flame className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+            <span>{stats.streak} day streak</span>
           </Link>
+
           <NotificationBell />
-          <Link to="/profile" className="flex items-center gap-1.5 text-sm text-slate-300 border border-slate-800 hover:border-violet-500/40 hover:text-white px-3 py-1.5 rounded-xl transition-all">
-            <User className="w-3.5 h-3.5 text-violet-400" />
-            <span className="hidden sm:inline">{user?.name?.split(' ')[0]}</span>
+
+          <Link
+            to="/profile"
+            className="flex items-center gap-2 text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 px-3 py-2 rounded-xl transition-all shadow-sm"
+          >
+            <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-[10px]">
+              {user?.name?.charAt(0) || 'U'}
+            </div>
+            <span className="hidden sm:inline font-semibold">{user?.name?.split(' ')[0]}</span>
           </Link>
-          <button onClick={handleLogout} className="text-sm text-slate-400 hover:text-red-400 transition-colors p-1.5">
+
+          <button
+            onClick={handleLogout}
+            className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-xl transition-colors"
+            title="Log out"
+          >
             <LogOut className="w-4 h-4" />
           </button>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        {/* Welcome Banner */}
-        <div className="glass-panel border border-slate-800 rounded-3xl p-6 sm:p-8 mb-8 bg-gradient-to-r from-violet-950/30 via-slate-900 to-indigo-950/30 relative overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <span className="text-xs font-bold text-violet-400 bg-violet-500/10 border border-violet-500/20 px-3 py-1 rounded-full uppercase tracking-wider">
-                <Target className="w-3 h-3 inline mr-1" />{stats.goal}
-              </span>
-              <h1 className="text-3xl sm:text-4xl font-black text-white mt-3">
-                Welcome back, <span className="text-violet-400">{user?.name?.split(' ')[0]}</span> 👋
-              </h1>
-              <p className="text-slate-400 text-sm mt-1">Your AI-personalized fitness & nutrition plan is active</p>
+      {/* Main Content Area */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 space-y-8">
+        {/* Welcome Greeting Banner */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-sm flex flex-wrap items-center justify-between gap-6">
+          <div className="space-y-1.5">
+            <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+              <Target className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Goal: {stats.goal}</span>
             </div>
-            <Link to="/chat" className="btn-gradient text-sm font-semibold px-5 py-3 rounded-2xl flex items-center gap-2 shadow-lg shadow-violet-500/20 hover:scale-105 transition-all">
-              <Sparkles className="w-4 h-4 text-amber-300" /> Ask AI Coach
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+              {getGreeting()}, {user?.name?.split(' ')[0] || 'Athlete'}
+            </h1>
+            <p className="text-slate-500 text-sm">
+              Your personalized workout and nutrition guidance is actively tracked.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              to="/chat"
+              className="bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-sm transition-all"
+            >
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <span>Ask Fitness Coach</span>
             </Link>
           </div>
         </div>
 
-        {/* Top KPI Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* 4 Primary KPI Stat Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'Daily Calories', value: `${stats.dailyCalories}`, unit: 'kcal', sub: 'Target Active ✓', icon: Utensils, color: 'text-amber-400', link: '/diet' },
-            { label: 'Workouts Done', value: `${stats.workoutsDone}`, unit: 'sessions', sub: 'PPL Split Active', icon: Activity, color: 'text-violet-400', link: '/workout' },
-            { label: 'Current Weight', value: `${stats.currentWeight}`, unit: 'kg', sub: '-3.0 kg Progress', icon: TrendingUp, color: 'text-blue-400', link: '/progress' },
-            { label: 'Active Streak', value: `${stats.streak}`, unit: 'Days', sub: 'Consistency 🔥', icon: Flame, color: 'text-amber-400', link: '/habits' },
+            { label: 'Daily Target', value: `${stats.dailyCalories}`, unit: 'kcal', sub: 'Nutrition active', icon: Utensils, iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-100', link: '/diet' },
+            { label: 'Workouts Completed', value: `${stats.workoutsDone}`, unit: 'sessions', sub: 'PPL Routine', icon: Activity, iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-100', link: '/workout' },
+            { label: 'Current Weight', value: `${stats.currentWeight}`, unit: 'kg', sub: 'Tracked progress', icon: TrendingUp, iconBg: 'bg-blue-50 text-blue-600 border-blue-100', link: '/progress' },
+            { label: 'Active Streak', value: `${stats.streak}`, unit: 'days', sub: 'Daily habits', icon: Flame, iconBg: 'bg-amber-50 text-amber-600 border-amber-100', link: '/habits' },
           ].map(s => (
-            <Link key={s.label} to={s.link} className="glass-panel border border-slate-800 hover:border-slate-700 rounded-2xl p-5 transition-all hover:scale-[1.02] group">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">{s.label}</span>
-                <s.icon className={`w-4 h-4 ${s.color}`} />
+            <Link
+              key={s.label}
+              to={s.link}
+              className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm hover:shadow hover:border-slate-300 transition-all flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{s.label}</span>
+                <div className={`w-8 h-8 rounded-xl border flex items-center justify-center ${s.iconBg}`}>
+                  <s.icon className="w-4 h-4" />
+                </div>
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-white">{s.value} <span className="text-xs font-normal text-slate-400">{s.unit}</span></p>
-              <p className={`text-xs font-medium mt-1 ${s.color}`}>{s.sub}</p>
+              <div>
+                <p className="text-2xl sm:text-3xl font-bold text-slate-900">
+                  {s.value} <span className="text-xs font-normal text-slate-500">{s.unit}</span>
+                </p>
+                <p className="text-xs text-slate-500 font-medium mt-1">{s.sub}</p>
+              </div>
             </Link>
           ))}
         </div>
 
-        {/* Fitness Score & Achievements Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Fitness Score Breakdown */}
-          <div className="glass-panel border border-slate-800 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2"><Star className="w-4 h-4 text-amber-400" /> Fitness Score</h3>
-              <div className={`text-3xl font-black ${scoreColor}`}>{stats.fitnessScore}<span className="text-sm text-slate-400 font-normal">/100</span></div>
+        {/* Fitness Score & Achievements */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Fitness Score Card */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center">
+                  <Star className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Fitness Consistency Score</h3>
+                  <p className="text-xs text-slate-500">Holistic activity breakdown</p>
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-slate-900">
+                {stats.fitnessScore}
+                <span className="text-xs text-slate-400 font-normal"> / 100</span>
+              </div>
             </div>
-            <div className="space-y-3">
+
+            <div className="space-y-3.5">
               {[
-                { label: 'Workout Consistency', val: stats.workout, color: 'bg-violet-500' },
-                { label: 'Nutrition', val: stats.nutrition, color: 'bg-emerald-500' },
-                { label: 'Hydration', val: stats.hydration, color: 'bg-blue-500' },
-                { label: 'Sleep', val: stats.sleep, color: 'bg-indigo-500' },
-                { label: 'Consistency', val: stats.consistency, color: 'bg-amber-500' },
+                { label: 'Workout Adherence', val: stats.workout, color: 'bg-indigo-600' },
+                { label: 'Nutrition & Macros', val: stats.nutrition, color: 'bg-emerald-600' },
+                { label: 'Hydration Consistency', val: stats.hydration, color: 'bg-blue-600' },
+                { label: 'Sleep & Recovery', val: stats.sleep, color: 'bg-purple-600' },
+                { label: 'Daily Habit Streak', val: stats.consistency, color: 'bg-amber-500' },
               ].map(b => (
                 <div key={b.label}>
                   <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="text-slate-400">{b.label}</span>
-                    <span className="text-white font-bold">{b.val}%</span>
+                    <span className="text-slate-600 font-medium">{b.label}</span>
+                    <span className="text-slate-900 font-bold">{b.val}%</span>
                   </div>
-                  <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                    <div className={`h-full ${b.color} rounded-full transition-all`} style={{ width: `${b.val}%` }} />
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className={`h-full ${b.color} rounded-full transition-all duration-500`} style={{ width: `${b.val}%` }} />
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Achievements */}
-          <div className="glass-panel border border-slate-800 rounded-2xl p-6">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-4"><Trophy className="w-4 h-4 text-amber-400" /> Achievements & Milestones</h3>
-            <div className="space-y-3">
+          {/* Achievements Card */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center">
+                  <Trophy className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Milestones & Achievements</h3>
+                  <p className="text-xs text-slate-500">Track key fitness accomplishments</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2.5">
               {ACHIEVEMENTS.map(a => (
-                <div key={a.id} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${a.unlocked ? 'bg-slate-900 border-slate-700' : 'bg-slate-900/30 border-slate-800/50 opacity-50'}`}>
-                  <div className="text-2xl">{a.icon}</div>
+                <div
+                  key={a.id}
+                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                    a.unlocked
+                      ? 'bg-slate-50/70 border-slate-200 text-slate-900'
+                      : 'bg-white border-slate-100 text-slate-400 opacity-60'
+                  }`}
+                >
+                  <span className="text-xl">{a.icon}</span>
                   <div className="flex-1">
-                    <p className={`text-sm font-bold ${a.unlocked ? 'text-white' : 'text-slate-500'}`}>{a.label}</p>
-                    <p className="text-xs text-slate-400">{a.desc}</p>
+                    <p className="text-xs font-bold text-slate-900">{a.label}</p>
+                    <p className="text-[11px] text-slate-500">{a.desc}</p>
                   </div>
-                  {a.unlocked
-                    ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    : <div className="w-4 h-4 rounded-full border border-slate-700 shrink-0" />
-                  }
+                  {a.unlocked ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  ) : (
+                    <div className="w-4 h-4 rounded-full border border-slate-300 shrink-0" />
+                  )}
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Feature Cards Grid */}
-        <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-          <Zap className="w-4 h-4 text-violet-400" /> Platform Features
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[
-            { title: 'AI Diet Plan', desc: 'Personalized 7-day meal plan based on your macros', icon: Utensils, color: 'text-emerald-400', bg: 'from-emerald-500/10 to-green-500/5 border-emerald-500/20', link: '/diet' },
-            { title: 'AI Workout Plan', desc: 'Custom Push/Pull/Legs weekly training split', icon: Activity, color: 'text-violet-400', bg: 'from-violet-500/10 to-indigo-500/5 border-violet-500/20', link: '/workout' },
-            { title: 'AI Chat Coach', desc: 'Groq Llama-3.3 70B RAG-grounded fitness coach', icon: MessageCircle, color: 'text-amber-400', bg: 'from-amber-500/10 to-orange-500/5 border-amber-500/20', link: '/chat' },
-            { title: 'Progress Tracker', desc: 'Interactive Recharts weight trend & fitness score', icon: TrendingUp, color: 'text-blue-400', bg: 'from-blue-500/10 to-sky-500/5 border-blue-500/20', link: '/progress' },
-            { title: 'Body & Posture Analysis', desc: 'MediaPipe 33-point landmark canvas overlay', icon: Scan, color: 'text-pink-400', bg: 'from-pink-500/10 to-rose-500/5 border-pink-500/20', link: '/body-analysis' },
-            { title: 'Physique Comparison', desc: 'Interactive before/after split comparison slider', icon: Camera, color: 'text-indigo-400', bg: 'from-indigo-500/10 to-violet-500/5 border-indigo-500/20', link: '/progress-photos' },
-          ].map(card => (
-            <Link key={card.title} to={card.link}
-              className={`glass-panel bg-gradient-to-br ${card.bg} border rounded-2xl p-6 hover:scale-[1.02] transition-all group`}>
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-10 h-10 rounded-xl bg-slate-900/80 flex items-center justify-center border border-slate-800">
-                  <card.icon className={`w-5 h-5 ${card.color}`} />
+        {/* Platform Features Grid */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-slate-900">Explore AstraFit Modules</h2>
+              <p className="text-xs text-slate-500">Access personalized plans and tracking tools</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              { title: 'Personalized Nutrition', desc: 'Custom meal plans balanced for calories and macronutrients', icon: Utensils, iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-100', link: '/diet' },
+              { title: 'Custom Workout Plan', desc: 'Tailored weekly training split suited for home or gym setups', icon: Activity, iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-100', link: '/workout' },
+              { title: 'AI Fitness Coach', desc: 'Chat with your 24/7 fitness specialist for advice & recipe ideas', icon: MessageCircle, iconBg: 'bg-amber-50 text-amber-600 border-amber-100', link: '/chat' },
+              { title: 'Body & Posture Analysis', desc: 'Biomechanical posture inspection and anatomical alignment score', icon: Scan, iconBg: 'bg-purple-50 text-purple-600 border-purple-100', link: '/body-analysis' },
+              { title: 'Weight & Fitness Trends', desc: 'Track weigh-ins, body measurements, and progress over time', icon: TrendingUp, iconBg: 'bg-blue-50 text-blue-600 border-blue-100', link: '/progress' },
+              { title: 'Physique Photo Comparison', desc: 'Side-by-side before and after slider to visualize transformation', icon: Camera, iconBg: 'bg-rose-50 text-rose-600 border-rose-100', link: '/progress-photos' },
+            ].map(card => (
+              <Link
+                key={card.title}
+                to={card.link}
+                className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm hover:shadow hover:border-slate-300 transition-all flex flex-col justify-between group"
+              >
+                <div>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={`w-10 h-10 rounded-xl border flex items-center justify-center ${card.iconBg}`}>
+                      <card.icon className="w-5 h-5" />
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-all" />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 mb-1">{card.title}</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed">{card.desc}</p>
                 </div>
-                <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
-              </div>
-              <h3 className="text-sm font-bold text-white mb-1">{card.title}</h3>
-              <p className="text-xs text-slate-400">{card.desc}</p>
-            </Link>
-          ))}
+              </Link>
+            ))}
+          </div>
         </div>
       </main>
     </div>
